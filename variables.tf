@@ -320,12 +320,15 @@ variable "block_http_traffic" {
   description = "True when http traffic has to be blocked for S3."
 }
 
-
-variable "tags" {
-  description = "A map of tags to apply"
-  type        = map(string)
-  default = {
-    name = ""
-  }
+variable "name" {
+  type        = string
+  description = "Default name tag"
 }
 
+variable "tags" {
+  type = map(string)
+  default = {
+    Environment = "dev"
+  }
+  description = "Custom tags (optional)"
+}

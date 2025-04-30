@@ -14,7 +14,12 @@ resource "aws_vpc" "default" {
   assign_generated_ipv6_cidr_block     = var.assign_generated_ipv6_cidr_block
   ipv6_cidr_block_network_border_group = var.ipv6_cidr_block_network_border_group
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
-  tags                                 = var.tags # Using the passed tags here
+  tags = merge(
+    var.tags,
+    {
+      Name = lookup(var.tags, "Name", var.name)
+    }
+  )
 
   lifecycle {
     # Ignore tags added by Kubernetes

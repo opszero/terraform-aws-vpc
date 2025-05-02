@@ -161,7 +161,7 @@ resource "aws_kms_alias" "kms-alias" {
   target_key_id = join("", aws_kms_key.kms[*].key_id)
 }
 
-resource "aws_kms_key_policy" "example" {
+resource "aws_kms_key_policy" "this" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   key_id = join("", aws_kms_key.kms[*].id)
   policy = jsonencode({
@@ -193,38 +193,38 @@ resource "aws_kms_key_policy" "example" {
 
 }
 
-resource "aws_s3_bucket" "mybucket" {
+resource "aws_s3_bucket" "this" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name
 }
 
-resource "aws_s3_bucket_ownership_controls" "example" {
+resource "aws_s3_bucket_ownership_controls" "this" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket[*].id)
+  bucket = join("", aws_s3_bucket.this[*].id)
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
-resource "aws_s3_bucket_acl" "example" {
+resource "aws_s3_bucket_acl" "this" {
   count      = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  depends_on = [aws_s3_bucket_ownership_controls.example]
-  bucket     = join("", aws_s3_bucket.mybucket[*].id)
+  depends_on = [aws_s3_bucket_ownership_controls.this]
+  bucket     = join("", aws_s3_bucket.this[*].id)
   acl        = "private"
 }
 
-resource "aws_s3_bucket_public_access_block" "example" {
+resource "aws_s3_bucket_public_access_block" "this" {
   count                   = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket                  = join("", aws_s3_bucket.mybucket[*].id)
+  bucket                  = join("", aws_s3_bucket.this[*].id)
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket[*].id)
+  bucket = join("", aws_s3_bucket.this[*].id)
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = join("", aws_kms_key.kms[*].arn)
@@ -235,7 +235,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
 
 resource "aws_s3_bucket_policy" "block-http" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket[*].id)
+  bucket = join("", aws_s3_bucket.this[*].id)
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -247,8 +247,8 @@ resource "aws_s3_bucket_policy" "block-http" {
         "Principal" : "*",
         "Action" : "s3:*",
         "Resource" : [
-          join("", aws_s3_bucket.mybucket[*].arn),
-          "${join("", aws_s3_bucket.mybucket[*].arn)}/*",
+          join("", aws_s3_bucket.this[*].arn),
+          "${join("", aws_s3_bucket.this[*].arn)}/*",
         ],
         "Condition" : {
           "Bool" : {
@@ -320,7 +320,7 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enabled && var.enable_flow_log == true ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? join("", aws_s3_bucket.mybucket[*].arn) : join("", aws_cloudwatch_log_group.flow_log[*].arn)) : var.flow_log_destination_arn
+  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? join("", aws_s3_bucket.this[*].arn) : join("", aws_cloudwatch_log_group.flow_log[*].arn)) : var.flow_log_destination_arn
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? join("", aws_iam_role.vpc_flow_log_cloudwatch[*].arn) : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type

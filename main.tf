@@ -44,7 +44,7 @@ resource "aws_internet_gateway" "default" {
   tags = merge(
     var.tags,
     {
-      name = format("%s-igw", lookup(var.tags, "name", "default"))
+      Name = format("%s-igw", lookup(var.tags, "Name", "default"))
     }
   )
 
@@ -90,7 +90,7 @@ resource "aws_default_security_group" "default" {
   tags = merge(
     var.tags,
     {
-      name = format("%s-vpc-default-sg", lookup(var.tags, "name", "default-name"))
+      Name = format("%s-vpc-default-sg", lookup(var.tags, "Name", "default-name"))
 
     }
   )
@@ -120,7 +120,7 @@ resource "aws_default_route_table" "default" {
   tags = merge(
     var.tags,
     {
-      name = format("%s-default-rt", lookup(var.tags, "name", "default-name"))
+      Name = format("%s-default-rt", lookup(var.tags, "Name", "default-name"))
     }
   )
 }
@@ -157,7 +157,7 @@ resource "aws_kms_key" "kms" {
 
 resource "aws_kms_alias" "kms-alias" {
   count         = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
-  name          = format("alias/%s-flow-log-key", lookup(var.tags, "name", "default-name"))
+  name          = format("alias/%s-flow-log-key", lookup(var.tags, "Name", "default-name"))
   target_key_id = join("", aws_kms_key.kms[*].key_id)
 }
 
@@ -262,7 +262,7 @@ resource "aws_s3_bucket_policy" "block-http" {
 
 resource "aws_cloudwatch_log_group" "flow_log" {
   count             = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
-  name              = format("%s-vpc-flow-log-cloudwatch_log_group", lookup(var.tags, "name", "default"))
+  name              = format("%s-vpc-flow-log-cloudwatch_log_group", lookup(var.tags, "Name", "default"))
   retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
   kms_key_id        = join("", aws_kms_key.kms[*].arn)
   tags              = var.tags
@@ -270,7 +270,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
 
 resource "aws_iam_role" "vpc_flow_log_cloudwatch" {
   count                = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
-  name                 = format("%s-vpc-flow-log-role", lookup(var.tags, "name", "default"))
+  name                 = format("%s-vpc-flow-log-role", lookup(var.tags, "Name", "default"))
   assume_role_policy   = join("", data.aws_iam_policy_document.flow_log_cloudwatch_assume_role[*].json)
   permissions_boundary = var.vpc_flow_log_permissions_boundary
   tags                 = var.tags
@@ -297,7 +297,7 @@ resource "aws_iam_role_policy_attachment" "vpc_flow_log_cloudwatch" {
 
 resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
   count  = var.enabled && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
-  name   = format("%s-vpc-flow-log-to-cloudwatch", lookup(var.tags, "name", "default-name"))
+  name   = format("%s-vpc-flow-log-to-cloudwatch", lookup(var.tags, "Name", "default-name"))
   policy = join("", data.aws_iam_policy_document.vpc_flow_log_cloudwatch[*].json)
   tags   = var.tags
 }
@@ -373,7 +373,7 @@ resource "aws_default_network_acl" "default" {
   tags = merge(
     var.tags,
     {
-      name = format("%s-nacl", lookup(var.tags, "name", "default-name"))
+      Name = format("%s-nacl", lookup(var.tags, "Name", "default-name"))
     }
   )
 }
